@@ -1,0 +1,1 @@
+# Django App for Managing and Organizing your task

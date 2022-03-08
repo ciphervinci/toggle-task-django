@@ -34,4 +34,7 @@ urlpatterns = [
     path('task/<int:task_pk>/complete', views.completetask, name='completetask'),
     path('task/<int:task_pk>/delete', views.deletetask, name='deletetask'),
 
+    # Issue
+    path('report_issue/', views.report_issue, name='report_issue'),
+
 ]

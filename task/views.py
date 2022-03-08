@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from .forms import TaskForm
 from .models import Task
+import requests
 
 # Authentication stuffs
 
@@ -37,11 +38,47 @@ def loginuser(request):
             login(request, user)
             return redirect('currenttasks')
 
-@login_required           
+@login_required
 def logoutuser(request):
     if request.method == 'POST':
         logout(request)
         return redirect('home')
+
+# Reporting Issue
+
+@login_required 
+def report_issue(request):
+    session_user = str(request.user)
+    if request.method == 'GET':
+        return render(request, 'task/report_issue.html', {'form': TaskForm(), 'user': session_user})
+    else:
+        try:
+            url = 'https://dev62107.service-now.com/api/now/table/incident'
+
+            user = 'rest.user'
+            pwd = 'Rest@1234'
+
+            short_description = request.POST.get('title')
+            description = request.POST.get('memo')
+            urgency = '3'
+            if(request.POST.get('important') == 'on'):
+                urgency = '1'
+
+            headers = {"Content-Type":"application/json","Accept":"application/json"}
+            response = requests.post(url, auth=(user, pwd), headers=headers ,data="{\"caller_id\":\""+ session_user +"\",\"short_description\":\""+ short_description +"\",\"description\":\""+ description +"\",\"urgency\":\""+ urgency +"\"}")
+
+            # Check for HTTP codes other than 200
+            # if response.status_code != 200: 
+            #     print('Status:', response.status_code, 'Headers:', response.headers, 'Error Response:',response.json())
+            #     exit()
+
+            # Decode the JSON response into a dictionary and use the data
+            # data = response.json()
+            # print(data)
+
+            return render(request, 'task/report_issue.html', {'form': TaskForm(), 'success': 'Incident Created Successfully !!'})
+        except ValueError:
+            return render(request, 'task/report_issue.html', {'form': TaskForm(), 'passerror': 'Bad value entered. Please try again!'})
 
 # Tasks
 
